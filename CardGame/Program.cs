@@ -32,19 +32,59 @@ namespace CardGame
 
         
 
+        int cardWidth = 25;
         public void printCard()
         {
             int width = 25;
             string horizontalLine = new String('-', width);
-            string faceString = cardValue + suitChars[suitValue];
+            string str = "";
             
-            Console.WriteLine(horizontalLine);
-            Console.WriteLine(cardValue);
-            Console.WriteLine(suitChars[suitValue]);
-            Console.WriteLine(String.Format("{0,"+ width +"}", suitChars[suitValue]));
-            Console.WriteLine(String.Format("{0,"+ width +"}", cardValue, width));
-            Console.WriteLine(horizontalLine);
+            str += horizontalLine + "\n";
+            str += cardValue + "\n";
+            str += suitChars[suitValue] + "\n";
+            
+            str += patternString(cardValue, suitValue);
 
+            str += String.Format("{0," + width + "}", suitChars[suitValue]) + "\n";
+            str += String.Format("{0," + width + "}", cardValue, width) + "\n";
+            str += horizontalLine;
+
+            Console.WriteLine(str);
+        }
+        
+        private string patternString(int value, int suit)
+        {
+            string str;
+
+            switch (value)
+            {
+                case 2:
+                    
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    break;
+                case 6:
+                    break;
+                case 7:
+                    break;
+                case 8:
+                    break;
+                case 9:
+                    break;
+                case 10:
+                    break;
+                case 11:
+                    break;
+                case 12:
+                    break;
+                case 13:
+                    break;
+            }
+            return str;
         }
     }
 
