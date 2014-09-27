@@ -16,6 +16,7 @@ namespace CardGame
            
         }
     }
+
     class Card
     {
         public Card(int value, int suit)
@@ -85,6 +86,14 @@ namespace CardGame
                     break;
             }
             return str;
+        }
+    }
+
+    class CardView
+    {
+        public static void displayCard(Card thisCard)
+        {
+
         }
     }
 
