@@ -61,7 +61,7 @@ namespace CardGame.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CARD2:
+        ///   Looks up a localized string similar to CARD_2:
         ///┌───────┐
         ///│2      │
         ///│♦      │
@@ -74,7 +74,7 @@ namespace CardGame.Properties {
         ///│      ♦│
         ///│      2│
         ///└───────┘
-        ///CARD3:
+        ///CARD_3:
         ///┌───────┐
         ///│3      │
         ///│♦      │
@@ -87,7 +87,7 @@ namespace CardGame.Properties {
         ///│      ♦│
         ///│      3│
         ///└───────┘
-        ///CARD4:
+        ///CARD_4:
         ///┌───────┐
         ///│4      │
         ///│♦      │
@@ -100,19 +100,35 @@ namespace CardGame.Properties {
         ///│      ♦│
         ///│      4│
         ///└───────┘
-        ///CARD5:
+        ///CARD_5:
         ///┌───────┐
         ///│5      │
         ///│♦      │
         ///│       │
         ///│  ♦ ♦  │
-        ///│       │
         ///│   ♦   │
-        ///│       [rest of string was truncated]&quot;;.
+        ///│  ♦ ♦  │
+        ///│   [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string cardFaces {
             get {
                 return ResourceManager.GetString("cardFaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ┌───────────────────────────────────────────────────────────────────┐
+        ///│                     Welcome to Basic Card Game                    │
+        ///│                                                                   │
+        ///│                                                                   │
+        ///│          The Rules:                                               │
+        ///│                                                                   │
+        ///│          Have a card with a higher value than your opponent.      │
+        ///│          If t [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string splashScreen {
+            get {
+                return ResourceManager.GetString("splashScreen", resourceCulture);
             }
         }
     }
