@@ -496,8 +496,12 @@ namespace CardGame
             Console.WriteLine();
             Console.WriteLine();
             
-            Console.Write(repeatString(" ", paddingToCenterString(title.Length, screenWidth)));            
+            
+            //Console.Write(repeatString(" ", paddingToCenterString(title.Length, screenWidth)));
+            
+            WritePadding(paddingToCenterString(title.Length, screenWidth));
             WriteLineWithColor(title, yellow, blue);            
+            
             Console.Write(repeatString(" ", paddingToCenterString(title2.Length, screenWidth)));
             WriteLineWithColor(title, yellow, blue);            
             
@@ -537,6 +541,11 @@ namespace CardGame
             //restore state
             Console.ForegroundColor = oldFront;
             Console.BackgroundColor = oldBack;
+        }
+
+        public static void WritePadding(int width)
+        {
+            Console.Write(repeatString(" ", width));
         }
         
     } //end GameGraphics class
