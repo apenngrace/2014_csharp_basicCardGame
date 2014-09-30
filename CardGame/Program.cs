@@ -436,7 +436,6 @@ namespace CardGame
 
             Console.Clear();    //first clear the screen
             
-
             for (int row = 0; row < height; row++)
             {
                 int startPoint = row * (width + Environment.NewLine.Length);
@@ -482,50 +481,95 @@ namespace CardGame
 
         public static int getNumPlayers()
         {
-            string title = "Choose the Quantity of Players";
-            string title2 = "Between 2 and 4 Players Can Join";
-            string question = "How many players? (default is 2) ->";
+            bool correctlyAnswered = false;
             int numPlayers = 2;
-            ConsoleColor yellow = ConsoleColor.Yellow;
-            ConsoleColor white = ConsoleColor.White;
-            ConsoleColor blue = ConsoleColor.Blue;
+            int timesAsked = 0;  //how many times the player has been asked to enter how many players.
 
-            Console.Clear();
-            Console.ResetColor();
-
-            Console.WriteLine();
-            Console.WriteLine();
-            
-            
-            //Console.Write(repeatString(" ", paddingToCenterString(title.Length, screenWidth)));
-            
-            WritePadding(paddingToCenterString(title.Length, screenWidth));
-            WriteLineWithColor(title, yellow, blue);            
-            
-            Console.Write(repeatString(" ", paddingToCenterString(title2.Length, screenWidth)));
-            WriteLineWithColor(title, yellow, blue);            
-            
-            Console.WriteLine();
-            
-            Console.Write(question);
-            Console.ForegroundColor = ConsoleColor.White;
-            string input = Console.ReadLine();
-
-            Regex rgx = new Regex(@"^[2-4]$");
-            if (rgx.IsMatch(input))
+            do
             {
-                Console.WriteLine("Good");
-                Console.ReadLine();
-                numPlayers = int.Parse(input);
-            }
-            else
-            {
-                Console.WriteLine("Problem");
-                Console.ReadLine();
-            }
+                int width = 69;
+                int height = 6;
+                int screenWidth = GameGraphics.screenWidth;
+                string screenText = Properties.Resources.howManyPlayers;
+                int numObjects = 1;
+                int spacesWidth = (int)(screenWidth - (numObjects * width)) / 2;
+
+                Console.Clear();    //first clear the screen
+
+                for (int row = 0; row < height; row++)
+                {
+                    int startPoint = row * (width + Environment.NewLine.Length);
+                    string thisRow = screenText.Substring(startPoint, width);
+
+                    Console.Write(GameGraphics.repeatString(" ", spacesWidth));  //print padding
+
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.BackgroundColor = ConsoleColor.DarkGreen;
+
+                    for (int j = 0; j < width; j++)
+                    {
+                        Console.Write(thisRow[j]);
+                    }
+                    Console.WriteLine();
+                    Console.ResetColor();
+                } //end loop
+
+                
+                Console.WriteLine();
+
+                if (timesAsked == 0)
+                {
+                    Console.WriteLine();
+                }
+                else
+                {
+                    //WritePadding(20);
+                    string sorry = "Sorry, try again. Please enter either: 2, 3 or 4.";
+                    Console.Write(repeatString(" ",paddingToCenterString(sorry.Length, screenWidth)));
+                    WriteLineWithColor(sorry, ConsoleColor.Red, ConsoleColor.Black);
+                }
+                
+                WritePadding(20);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("->");
+                Console.ForegroundColor = ConsoleColor.White;
+                string input = Console.ReadLine();
+
+                Regex rgx = new Regex(@"^[2-4]$");
+                if (rgx.IsMatch(input))
+                {
+                    numPlayers = int.Parse(input);
+                    correctlyAnswered = true;
+
+                    Console.WriteLine();
+                    Console.WriteLine();
+
+                    string confirmation = "You chose to have " + numPlayers + " players.";
+                    Console.Write(GameGraphics.repeatString(" ", GameGraphics.paddingToCenterString(confirmation.Length, screenWidth)));
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine(confirmation);
+                    
+                    string pressKey = "[Press Enter to Continue]";
+                    
+                    Console.WriteLine();
+                    
+                    Console.Write(GameGraphics.repeatString(" ", GameGraphics.paddingToCenterString(pressKey.Length, screenWidth)));
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine(pressKey);
+                    Console.ResetColor();
+                    Console.ReadLine();
+                                        
+                    
+                }
+                else
+                {
+                    timesAsked++;
+                }
+
+            } while (!correctlyAnswered);
 
             return numPlayers;
-        }
+        }   //end method
 
         public static void WriteLineWithColor(string str, ConsoleColor front, ConsoleColor back)
         {
