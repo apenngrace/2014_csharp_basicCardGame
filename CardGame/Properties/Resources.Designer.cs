@@ -121,12 +121,28 @@ namespace CardGame.Properties {
         ///│               ** Choose the Quantity of Players **                │
         ///│                                                                   │
         ///│                Between 2 and 4 Players Can Join                   │
-        ///│                 [Type a number and press enter.]                  │
+        ///│                 [Type a number and press enter]                   │
         ///└───────────────────────────────────────────────────────────────────┘.
         /// </summary>
         internal static string howManyPlayers {
             get {
                 return ResourceManager.GetString("howManyPlayers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ┌───────────────────────────────────────────────────────────────────┐
+        ///│              *** Welcome to Basic Card Game ***                   │
+        ///│                                                                   │
+        ///│                                                                   │
+        ///│   The Rules:                                                      │
+        ///│                                                                   │
+        ///│   The player with the highest card in the round wins 2 points.    │
+        ///│               [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string roundNumber {
+            get {
+                return ResourceManager.GetString("roundNumber", resourceCulture);
             }
         }
         
