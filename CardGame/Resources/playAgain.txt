@@ -1,5 +1,5 @@
 ﻿╔════════════════════════════════╗
-║          GAME OVER             ║
+║           GAME OVER            ║
 ║                                ║
 ║ Would you like to play again?  ║
 ║                                ║
