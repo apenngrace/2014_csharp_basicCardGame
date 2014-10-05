@@ -69,9 +69,9 @@ namespace CardGame.Properties {
         ///║│Player4 : ### │      $E                                               ║
         ///║└──────────────┘      $F                                      [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string BottomHalf {
+        internal static string bottomHalf {
             get {
-                return ResourceManager.GetString("BottomHalf", resourceCulture);
+                return ResourceManager.GetString("bottomHalf", resourceCulture);
             }
         }
         
@@ -153,9 +153,9 @@ namespace CardGame.Properties {
         ///║  [Press Enter to Continue]   ║
         ///╚══════════════════════════════╝.
         /// </summary>
-        internal static string Reshuffling {
+        internal static string reshuffling {
             get {
-                return ResourceManager.GetString("Reshuffling", resourceCulture);
+                return ResourceManager.GetString("reshuffling", resourceCulture);
             }
         }
         

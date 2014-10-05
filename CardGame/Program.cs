@@ -745,7 +745,7 @@ namespace CardGame
         
         public static void needToShuffleDeck()
         {
-            GraphicString g = new GraphicString(Properties.Resources.Reshuffling);
+            GraphicString g = new GraphicString(Properties.Resources.reshuffling);
             int horizontal = (int)(80/2) - (int)(g.width / 2);
             int vertical = (int)(25/2) - (int)(g.height / 2);
             
@@ -761,7 +761,7 @@ namespace CardGame
         //Render the bottom half of the screen with data.
         public static void showBottomHalf(List<Player> players, Dictionary<string, string> messages, int cursorTop)
         {
-            GraphicString g = new GraphicString(Properties.Resources.BottomHalf);
+            GraphicString g = new GraphicString(Properties.Resources.bottomHalf);
             int playerDataPlaced = 0;
                         
             for (int i = 0; i < g.height; i++)
