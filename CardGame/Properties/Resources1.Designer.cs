@@ -145,6 +145,22 @@ namespace CardGame.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ╔════════════════════════════════╗
+        ///║          GAME OVER             ║
+        ///║                                ║
+        ///║ Would you like to play again?  ║
+        ///║                                ║
+        ///║                                ║
+        ///║  [Type Yes or No then Enter]   ║
+        ///╚════════════════════════════════╝.
+        /// </summary>
+        internal static string playAgain {
+            get {
+                return ResourceManager.GetString("playAgain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ╔══════════════════════════════╗
         ///║                              ║
         ///║  All Cards in Deck Played    ║

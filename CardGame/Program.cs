@@ -14,8 +14,14 @@ namespace CardGame
     {
         static void Main(string[] args)
         {
-            Game thisGame = new Game();
-            thisGame.startGame();      
+            bool continuePlaying = false;
+
+            do
+            {
+                Game thisGame = new Game();
+                thisGame.startGame();
+                continuePlaying = GameGraphics.promptPlayerContinuePlaying();
+            } while (continuePlaying);
         }
     }
 
@@ -23,7 +29,6 @@ namespace CardGame
     {
         public int roundId { get; set; }               //1 based round number to display on screen
         public Game game { get; set; }          //hold onto a reference of Game
-        private int WINNER_POINTS = 2;
         Dictionary<string, string> messages;
         
         public Round(Game g)
@@ -34,107 +39,83 @@ namespace CardGame
         }
 
         public void playRound()
-        {
-            displayHeader();
+        {         
+            GameGraphics.displayRoundHeader(roundId);
             int cursorTopBelowHeader = Console.CursorTop;
             int cardHeight = 12;
             int cursorBelowCards = cursorTopBelowHeader + cardHeight;
-
-            //GameGraphics.showBottomHalf(game.players, null, cursorBelowCards);
-            //Console.ReadLine();
              
             //each player gets their turn to choose a card
             for (int i = 0; i < game.players.Count; i++)
             {
-                promptPlayerPickCard(i, cursorBelowCards);
+                GameGraphics.promptPlayerPickCard(this, i, cursorBelowCards);
                 game.players[i].card = game.deck.nextCard();         //get next card from the deck
                 CardGraphics.displayCardList(game.players, cursorTopBelowHeader);               
             }
 
-           //Console.ReadLine();
-
+            //determine who won round (if everyone gets a penalty, then no winner is declared)
             int winnerIndex = WhoWonRound();
             
-            if (game.players[winnerIndex].card.cardValue != -1)
-            { game.players[winnerIndex].playerScore += WINNER_POINTS; }
+            if (game.players[winnerIndex].card.cardValue != GameConstants.PENALTY_CARD)
+            { game.players[winnerIndex].playerScore += GameConstants.POINTS_WON; }
                         
-            checkPenalty();
+            applyPenaltyScore();    //add the penalty amount to the players' scores
 
-            showWinnerAndScores(winnerIndex, cursorBelowCards);
+            //update the scores below in bottom half of screen
+            GameGraphics.showWinnerAndScores(this, winnerIndex, cursorBelowCards);
 
             if (isGameOver())
             {
-                GameGraphics.winner(game.players[winnerIndex].playerName, game.players[winnerIndex].playerScore.ToString());
+                GameGraphics.showWinner(game.players[winnerIndex].playerName, game.players[winnerIndex].playerScore.ToString());
             }
             
             clearPlayerCards();
         } //method
 
 
-        private void showWinnerAndScores(int winnerIndex, int cursorBelowCards)
+        //create and return a list of players who got a penalty card in the round.
+        public List<Player> getPenalizedPlayers()
         {
-            clearMessages();
+            //bool penaltyFound = false;
+            //int howManyPenalties = 0;
+            List<Player> temp = new List<Player>();
 
-            char letter;
-            //if multiple penalties are given, then no winner for round.
-            if (game.players[winnerIndex].card.cardValue != -1)
-            {
-                string roundWinnerString = game.players[winnerIndex].playerName + " won this round. (+2 Points)";
-                letter = 'B';
-                AddOrUpdateDictionaryEntry(messages, letter.ToString(), roundWinnerString);
-            }
-
-            letter = 'C';            
-            bool penaltyFound = false;
             foreach (var p in game.players)
-            {              
-                if (p.card.cardValue == -1)
+            {
+                if (p.card.cardValue == GameConstants.PENALTY_CARD)
                 {
-                    penaltyFound = true;
-                    string penaltyMessage = p.playerName + " got a penalty card. (-1 Point)";
-                    AddOrUpdateDictionaryEntry(messages, letter.ToString(), penaltyMessage);
-                    letter++;   //advance to letter D (only 2 possible penalty cards in deck).
+                    temp.Add(p);
+
+                    //string penaltyMessage = p.playerName + " got a penalty card. (-1 Point)";
+                    //AddOrUpdateDictionaryEntry(messages, lineDisplay.ToString(), penaltyMessage);
+                    //lineDisplay++;   //advance to letter D (only 2 possible penalty cards in deck).
                 }
             }
 
-            if (!isGameOver())
-            {
-                letter = 'F';
-                AddOrUpdateDictionaryEntry(messages, letter.ToString(), "[Press Enter to Continue]");
-            }
-
-            //letter = 'F';
-            //AddOrUpdateDictionaryEntry(messages, letter.ToString(), "[Press Enter to Continue]");
-
-            GameGraphics.showBottomHalf(game.players, messages, cursorBelowCards);
-
-            if (!isGameOver())          //do not pause if the game is over, to allow winning screen to pop up.
-            { Console.ReadLine(); }
-            
-        }   //end method
+            if (temp.Count == 0)
+                return null;
+            else
+                return temp;
+        }
 
         public bool isGameOver()
         {
-            int WINNING_SPREAD = 2;
-            int MIN_WINNING_SCORE = 21;
             List<int> scores = new List<int>();
             
             foreach (Player player in game.players)
-            {
                 scores.Add(player.playerScore);
-            }
-
+            
             scores.Sort((a, b) => -1 * a.CompareTo(b));     //sort scores descending
             
-            if (scores[0] >= MIN_WINNING_SCORE)     //check highest score to see if there is a win.
+            if (scores[0] >= GameConstants.MIN_WINNING_SCORE)     //check highest score to see if there is a win.
             {
-                return scores[0] > (scores[1] + WINNING_SPREAD);
+                return scores[0] > (scores[1] + GameConstants.WINNING_SPREAD);
             }
 
             return false;
         }
 
-        private void checkPenalty()
+        private void applyPenaltyScore()
         {
             foreach (Player player in game.players)
             {
@@ -148,6 +129,7 @@ namespace CardGame
             }
         }
 
+        // delete the cards from the players so that they do not leak into next round
         private void clearPlayerCards()
         {
             foreach (Player player in game.players)
@@ -184,70 +166,10 @@ namespace CardGame
             return winnerIndex;
         }
         
-        private void displayHeader()
-        {
-            Console.Clear();
-            Console.SetCursorPosition(0, 0);
-
-            string roundString = Properties.Resources.roundNumber;
-                        
-            GraphicString g = new GraphicString(Properties.Resources.roundNumber);
-            for (int i = 0; i < g.height; i++)
-            {
-                string thisRowString = g.getRow(i);     //get one row at a time of the string to be displayed
-
-                int roundPosition = thisRowString.IndexOf("Round");
-                
-                if (roundPosition != -1)
-                {                   
-                    int NumberPosition = roundPosition + ("Round ".Length);
-                    //adding the round number on screen without messing up the box line drawing
-                    thisRowString = thisRowString.Remove(NumberPosition,roundId.ToString().Length).Insert(NumberPosition,roundId.ToString());
-                }
-                    
-
-                Console.Write(GameGraphics.paddingToCenterString(thisRowString));
-                GameGraphics.WriteLineWithColor(thisRowString, ConsoleColor.Yellow, ConsoleColor.DarkGreen);
-            }
-        } //end method
-        
-        private void promptPlayerPickCard(int i, int cursorTop)
-        {
-            Console.SetCursorPosition(0, cursorTop);
-            
-            
-            //string leftPadding = GameGraphics.paddingToCenterString((game.players[i].playerName + chooseCard));
-            //Console.Write(leftPadding);
-            //GameGraphics.WriteWithColor(game.players[i].playerName, ConsoleColor.Cyan, ConsoleColor.Black);
-            //GameGraphics.WriteLineWithColor(chooseCard, ConsoleColor.Yellow, ConsoleColor.Black);
-
-            //messages.Add("A", game.players[i].playerName + chooseCard);
-            //messages.Add("F", "[Press Enter to Continue]");
-
-            string chooseCard = " choose a card.";
-            AddOrUpdateDictionaryEntry(messages,"A", game.players[i].playerName + chooseCard);
-            AddOrUpdateDictionaryEntry(messages, "F", "[Press Enter to Continue]");
-            GameGraphics.showBottomHalf(game.players, messages, cursorTop);
-            Console.ReadLine();
-            
-            //GameGraphics.PressEnterToContinue();
-        }
-
-        private void AddOrUpdateDictionaryEntry(Dictionary<string, string> dict, string key, string value)
-        {
-            if (dict.ContainsKey(key))
-            {
-                dict[key] = value;
-            }
-            else
-            {
-                dict.Add(key, value);
-            }
-        }
-        private void clearMessages()
-        {
-            messages = new Dictionary<string, string>();
-        }
+        //private void clearMessages()
+        //{
+        //    messages = new Dictionary<string, string>();
+        //}
 
     } //end class
 
@@ -297,25 +219,15 @@ namespace CardGame
                     deck.shuffle(5);        //shuffle deck 5 times
                 }
                 
-                Round round = new Round(this);
-                round.playRound();
-
+                Round round = new Round(this);          //create a Round object to represent round of play, pass ref to game obj
+                round.playRound();                      //start playing the round
                 roundCount++;
-
-                //ask players to get a card, then display the card on screen
-                //check results of the round, if a player wins, then display a win result
-                //display the results on screen
-                //ask to begin the next round               
-                //if the game ended, then ask if the user wants to start another game
                 isGameOver = round.isGameOver();
 
             } while (!isGameOver); //end game loop
-
-            //Console.WriteLine("Somebody Won!");
-            //Console.ReadLine();
-            
+           
         }
-    }
+    } //end Game class
 
 
     class Deck
@@ -324,6 +236,7 @@ namespace CardGame
         static int highestCard = 14;
         static int numSuits = 4;
         static int currentCardIndex = 0;        //use a pointer to position top of deck.
+        static int PENALTY_QUANTITY = 4;
         
         List<Card> cardDeck = new List<Card>();
 
@@ -334,16 +247,12 @@ namespace CardGame
             // plus there are 2 special penalty cards
 
             for (int j = 0; j < numSuits; j++)
-            {
                 for (int i = lowestCard; i <= highestCard; i++)
-                {
-                    cardDeck.Add(new Card(i,j));
-                }
-            }
-
-            //the 2 penalty cards
-            cardDeck.Add(new Card(-1, -1));
-            cardDeck.Add(new Card(-1, -1));
+                    cardDeck.Add(new Card(i,j));               
+            
+            //add the requisite penalty cards to deck
+            for (int i = 0; i < PENALTY_QUANTITY; i++)
+                cardDeck.Add(new Card(-1, -1));            
 
         }   //end constructor      
 
@@ -353,13 +262,10 @@ namespace CardGame
             thisCard = cardDeck[currentCardIndex];
 
             if (currentCardIndex + 1 > cardDeck.Count)
-            {
                 currentCardIndex = 0;
-            }
             else
-            {
-                currentCardIndex++;
-            }            
+                currentCardIndex++; 
+                        
             return thisCard;
         }
 
@@ -386,12 +292,13 @@ namespace CardGame
                 tempDeck.Add(null);
             }
 
+            //Get a random number to position card in deck.  If the number
+            //is already taken, then just keep checking if adjacent indices are taken until an empty one if found.
             for (int i = 0; i < numCards; i++)
             {
                 int someNumber = randomGenerator.Next(0, highestIndex);
                 if (tempDeck[someNumber] == null)
                 {
-                    //tempDeck.Insert(someNumber, cardDeck[i]);   //insert the card at the random spot
                     tempDeck[someNumber] = cardDeck[i];
                 }
                 else   //insert at next closest spot in tempDeck
@@ -426,26 +333,34 @@ namespace CardGame
         }   //end shuffle       
     }
 
-
+    //Assuming that only valid values for cards will be added here
+    //
     class Card
     {
-        private int myCardValue; //card value can be between 2 to 10, J10, Q11, K12, A13
-        private int mySuitValue;  //suit values will be 0 to 3, based on arrays above
-
-        public Card(int value, int suit)
+        public int cardValue { get; private set; }
+        public int suitValue { get; private set; }
+        private int MIN_CARD = 2, MAX_CARD = 14;
+        private int PENALTY_CARD = -1;
+        private int MIN_SUIT = 0, MAX_SUIT = 3;
+        
+        public Card(int card, int suit)
         {
-            myCardValue = value;
-            mySuitValue = suit;             //suits: 0 club, 1 diamond, 2 heart, 3 spade
+            if (validRangeCard(card) && validRangeSuit(suit))
+            {
+                this.cardValue = card;
+                this.suitValue = suit;
+            }
         }
 
-        public int cardValue
+        private bool validRangeCard (int card)
         {
-            get { return myCardValue; }
+            return (card >= MIN_CARD && card <= MAX_CARD) || card == PENALTY_CARD;
         }
-        public int suitValue
+
+        private bool validRangeSuit(int suit)
         {
-            get { return mySuitValue; }
-        } 
+            return (MIN_SUIT >= 0 && suit <= MAX_SUIT);
+        }
     }   //end Card class
 
     class CardGraphics
@@ -576,8 +491,15 @@ namespace CardGame
     class GameGraphics
     {
         public static int screenWidth = 80;
+        public static int screenHeight = 25;
         public static int cardWidth = 9;
         public static int cardHeight = 12;
+        public static char BOTTOM_DISPLAY_MSG_1 = 'A';
+        public static char BOTTOM_DISPLAY_MSG_2 = 'B';
+        public static char BOTTOM_DISPLAY_MSG_3 = 'C';
+        public static char BOTTOM_DISPLAY_MSG_4 = 'D';
+        public static char BOTTOM_DISPLAY_MSG_5 = 'E';
+        public static char BOTTOM_DISPLAY_MSG_6 = 'F';
 
         public static string repeatString(string str, int times)
         {
@@ -663,8 +585,8 @@ namespace CardGame
                 }
                 
                 WritePadding(20);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("->");
+                WriteWithColor("->", ConsoleColor.Yellow, ConsoleColor.Black);
+                
                 Console.ForegroundColor = ConsoleColor.White;
                 string input = Console.ReadLine();
 
@@ -824,7 +746,7 @@ namespace CardGame
             }
         }
 
-        public static void winner(string name, string score)
+        public static void showWinner(string name, string score)
         {
             GraphicString g = new GraphicString(Properties.Resources.winner);
             int horizontal = (int)(80 / 2) - (int)(g.width / 2);
@@ -859,6 +781,177 @@ namespace CardGame
             Console.CursorVisible = false;
             Console.ReadLine();            
         }
+
+        public static void displayRoundHeader(int roundId)
+        {
+            Console.Clear();
+            Console.SetCursorPosition(0, 0);
+
+            string roundString = Properties.Resources.roundNumber;
+
+            GraphicString g = new GraphicString(Properties.Resources.roundNumber);
+            for (int i = 0; i < g.height; i++)
+            {
+                string thisRowString = g.getRow(i);     //get one row at a time of the string to be displayed
+
+                int roundPosition = thisRowString.IndexOf("Round");
+
+                if (roundPosition != -1)
+                {
+                    int NumberPosition = roundPosition + ("Round ".Length);
+                    //adding the round number on screen without messing up the box line drawing
+                    thisRowString = thisRowString.Remove(NumberPosition, roundId.ToString().Length).Insert(NumberPosition, roundId.ToString());
+                }
+                
+                Console.Write(GameGraphics.paddingToCenterString(thisRowString));
+                GameGraphics.WriteLineWithColor(thisRowString, ConsoleColor.Yellow, ConsoleColor.DarkGreen);
+            }
+        } //end method
+
+
+        public static void showWinnerAndScores(Round round, int winnerIndex, int cursorBelowCards)
+        {
+            Dictionary<string, string> messages = new Dictionary<string, string>();
+            char lineDisplay;
+
+            //if multiple penalties are given, then no winner for round.
+            if (round.game.players[winnerIndex].card.cardValue != GameConstants.PENALTY_CARD)
+            {
+                string roundWinnerString = round.game.players[winnerIndex].playerName + " won this round. (+2 Points)";
+                lineDisplay = GameGraphics.BOTTOM_DISPLAY_MSG_2;
+                //letter = 'B';
+                ToolBox.AddOrUpdateDictionaryEntry(messages, lineDisplay.ToString(), roundWinnerString);
+            }
+
+            //lineDisplay = 'C';            
+            List<Player> penalties = round.getPenalizedPlayers();
+            if (penalties != null)
+            {
+                string penaltyString;
+
+                if (penalties.Count == 4)   //everyone got a penalty card
+                    lineDisplay = GameGraphics.BOTTOM_DISPLAY_MSG_2;
+                else
+                    lineDisplay = GameGraphics.BOTTOM_DISPLAY_MSG_3;
+
+                for (int i = 0; i < penalties.Count; i++)
+                {
+                    penaltyString = penalties[i].playerName + " got a penalty. (-1 Point)";
+                    ToolBox.AddOrUpdateDictionaryEntry(messages, lineDisplay.ToString(), penaltyString);
+                    lineDisplay++;
+                }
+            }
+
+
+            if (!round.isGameOver())
+            {
+                lineDisplay = GameGraphics.BOTTOM_DISPLAY_MSG_6;
+                ToolBox.AddOrUpdateDictionaryEntry(messages, lineDisplay.ToString(), "[Press Enter to Continue]");
+            }
+
+            GameGraphics.showBottomHalf(round.game.players, messages, cursorBelowCards);
+
+            if (!round.isGameOver())          //do not pause if the game is over, to allow winning screen to pop up.
+            { Console.ReadLine(); }
+
+        }   //end method
+
+        public static void promptPlayerPickCard(Round round, int i, int cursorTop)
+        {
+            Dictionary<string, string> messages = new Dictionary<string, string>();
+            
+            Console.SetCursorPosition(0, cursorTop);
+
+            string chooseCard = " choose a card.";
+            ToolBox.AddOrUpdateDictionaryEntry(messages, "A", round.game.players[i].playerName + chooseCard);
+            ToolBox.AddOrUpdateDictionaryEntry(messages, "F", "[Press Enter to Continue]");
+            GameGraphics.showBottomHalf(round.game.players, messages, cursorTop);
+            Console.ReadLine();
+
+            //GameGraphics.PressEnterToContinue();
+        }
+
+        public static bool promptPlayerContinuePlaying()
+        {
+            bool answer = false;
+            bool correctlyAnswered = false;
+            int timesAsked = 0;
+
+            do
+            {
+                Console.Clear();    //first clear the screen
+                GraphicString g = new GraphicString(Properties.Resources.playAgain);
+                int horizontal = (int)(screenWidth / 2) - (int)(g.width / 2);
+                int vertical = (int)(screenHeight / 2) - (int)(g.height / 2);
+
+                //displaying question centered on screen
+                for (int i = 0; i < g.height; i++)
+                {
+                    string thisLine = g.getRow(i);
+                    Console.SetCursorPosition(horizontal, vertical + i);
+                    WriteWithColor(thisLine, ConsoleColor.White, ConsoleColor.DarkGreen);
+                }                
+                
+                //display area below where user answers questions
+                Console.WriteLine();
+                if (timesAsked == 0)
+                {
+                    Console.WriteLine();
+                }
+                else
+                {
+                    //WritePadding(20);
+                    string sorry = "Sorry, try again. Please enter either: Yes or No.";
+                    Console.Write(paddingToCenterString(sorry));
+                    WriteLineWithColor(sorry, ConsoleColor.Red, ConsoleColor.Black);
+                }
+
+                WritePadding(20);
+                WriteWithColor("->", ConsoleColor.Yellow, ConsoleColor.Black);
+
+                Console.ForegroundColor = ConsoleColor.White;
+                string input = Console.ReadLine();
+
+                //test for either YES or Y, NO or N
+                bool gotMatch;
+                Regex rgx = new Regex(@"^(?:YES|NO)$");
+                gotMatch = rgx.IsMatch(input.ToUpper());
+
+                if (!gotMatch)
+                {
+                    rgx = new Regex(@"^[Y|N]$");
+                    gotMatch = rgx.IsMatch(input.ToUpper());
+                }
+
+                if (gotMatch)
+                {
+                    if (input.ToUpper().Substring(0, 1) == "Y")
+                    { answer = true; }
+                    else
+                    { answer = false; }
+                    
+                    correctlyAnswered = true;
+
+                    //Console.WriteLine();
+                    //Console.WriteLine();
+
+                    //string confirmation = "You chose to have " + numPlayers + " players.";
+                    //Console.Write(paddingToCenterString(confirmation));
+                    //GameGraphics.WriteLineWithColor(confirmation, ConsoleColor.White, ConsoleColor.Black);
+
+                    //PressEnterToContinue();
+                }
+                else
+                {
+                    timesAsked++;
+                }
+
+            } while (!correctlyAnswered);
+
+
+            return answer;
+
+        } //end continue playing method
 
         
     } //end GameGraphics class
@@ -919,6 +1012,29 @@ namespace CardGame
         }
     } //end class
 
+    class GameConstants
+    {
+        public static int PENALTY_CARD = -1;
+        public static int POINTS_WON = 2;
+        public static int PENALTY_POINTS = -1;
+        public static int MIN_WINNING_SCORE = 21;
+        public static int WINNING_SPREAD = 2;       //the amount of points ahead you have to be against your opponent to win.
+    }
+
+    class ToolBox       //misc utility methods to share
+    {
+        public static void AddOrUpdateDictionaryEntry(Dictionary<string, string> dict, string key, string value)
+        {
+            if (dict.ContainsKey(key))
+            {
+                dict[key] = value;
+            }
+            else
+            {
+                dict.Add(key, value);
+            }
+        }
+    }
 
 
 }
