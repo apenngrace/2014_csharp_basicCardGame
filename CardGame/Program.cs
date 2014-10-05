@@ -15,76 +15,234 @@ namespace CardGame
         static void Main(string[] args)
         {
             Game thisGame = new Game();
-            thisGame.startGame();              
-
+            thisGame.startGame();      
         }
     }
 
     class Round
     {
-        public List<Player> players { get; set; }       //store players 
         public int roundId { get; set; }               //1 based round number to display on screen
-        public Game thisGame { get; set; }          //hold onto a reference of Game
+        public Game game { get; set; }          //hold onto a reference of Game
+        private int WINNER_POINTS = 2;
+        Dictionary<string, string> messages;
         
-        private int turnNumber = 0;                    //0 base turn number
-        private List<Card> cards;
+        public Round(Game g)
+        {
+            game = g;
+            roundId = game.roundCount;
+            messages = new Dictionary<string, string>();
+        }
 
         public void playRound()
         {
+            displayHeader();
+            int cursorTopBelowHeader = Console.CursorTop + 1;
+            int cardHeight = 12;
+            int cursorBelowCards = cursorTopBelowHeader + cardHeight;
+
+            //GameGraphics.showBottomHalf(game.players, null, cursorBelowCards);
+            //Console.ReadLine();
+             
+            //each player gets their turn to choose a card
+            for (int i = 0; i < game.players.Count; i++)
+            {
+                promptPlayerPickCard(i, cursorBelowCards);
+                game.players[i].card = game.deck.nextCard();         //get next card from the deck
+                CardGraphics.displayCardList(game.players, cursorTopBelowHeader);               
+           }
+
+           Console.ReadLine();
+
+            ////Clear the cards
+            //Console.SetCursorPosition(0, cursorTopBelowHeader);
+            //for (int i = 0; i < cardHeight; i++)
+            //{
+            //    Console.SetCursorPosition(0, i + cursorTopBelowHeader);
+            //    GameGraphics.WritePadding(80);
+            //}
+            int winnerIndex = WhoWonRound();
+            game.players[winnerIndex].playerScore += WINNER_POINTS;
+            checkPenalty();
+
+            showWinnerAndScores(winnerIndex, cursorBelowCards);
             
+            clearPlayerCards();
+        } //method
+
+
+        private void showWinnerAndScores(int winnerIndex, int cursorBelowCards)
+        {
+            Console.SetCursorPosition(0, cursorBelowCards);
+            GameGraphics.WritePadding(80); Console.WriteLine();
+            GameGraphics.WritePadding(80); Console.WriteLine();
+            GameGraphics.WritePadding(80); Console.WriteLine();
+            GameGraphics.WritePadding(80); Console.WriteLine();
+            Console.SetCursorPosition(0, cursorBelowCards);
+            
+            string roundWinnerString = GameGraphics.centeredString(game.players[winnerIndex].playerName + " won this round.");
+            GameGraphics.WriteLineWithColor(roundWinnerString, ConsoleColor.White, ConsoleColor.Black);
+
+            Console.WriteLine("Scores:");
+            for (int i = 0; i < game.players.Count; i++ )
+            {
+                Player player = game.players[i];
+                
+                if (i == winnerIndex)
+                    Console.WriteLine(player.playerName + ": " + player.playerScore + " \t(Round Winner)");                
+                else if (game.players[i].card.cardValue == -1)
+                    Console.WriteLine(player.playerName + ": " + player.playerScore + " \t(Penalty Card)");
+                else
+                    Console.WriteLine(player.playerName + ": " + player.playerScore);
+            }
+
+            if (isGameOver())
+            {
+                Console.WriteLine(game.players[winnerIndex].playerName + " won the game.");
+            }
+
+            GameGraphics.PressEnterToContinue();
+        }   //end method
+
+        public bool isGameOver()
+        {
+            int WINNING_SPREAD = 2;
+            int MIN_WINNING_SCORE = 21;
+            List<int> scores = new List<int>();
+            
+            foreach (Player player in game.players)
+            {
+                scores.Add(player.playerScore);
+            }
+
+            scores.Sort((a, b) => -1 * a.CompareTo(b));     //sort scores descending
+            
+            if (scores[0] >= MIN_WINNING_SCORE)     //check highest score to see if there is a win.
+            {
+                return scores[0] > (scores[1] + WINNING_SPREAD);
+            }
+
+            return false;
+        }
+
+        private void checkPenalty()
+        {
+            foreach (Player player in game.players)
+            {
+                if (player.card.cardValue == -1)
+                {
+                    if (player.playerScore - 1 < 0)
+                        player.playerScore = 0;
+                    else
+                       player.playerScore--;
+                }                    
+            }
+        }
+
+        private void clearPlayerCards()
+        {
+            foreach (Player player in game.players)
+            {
+                player.card = null;
+            }
+        }
+
+        private int WhoWonRound()
+        {
+            int highValue = 0;
+            int winnerIndex = 0;  
+            
+            for (int i = 0; i < game.players.Count; i++)
+            {
+                int currentValue = game.players[i].card.cardValue;
+                if (highValue < currentValue)
+                {
+                    winnerIndex = i;
+                    highValue = currentValue;
+                }
+                else if (highValue == currentValue)         //compare suit values if winning face values are the same.
+                {
+                    Card winningCard = game.players[winnerIndex].card;
+                    Card currentCard = game.players[i].card;
+                    
+                    if (winningCard.suitValue < currentCard.suitValue)
+                    {
+                        winnerIndex = i;
+                    }                    
+                }
+            } //end for 
+
+            return winnerIndex;
+        }
+        
+        private void displayHeader()
+        {
             Console.Clear();
             Console.SetCursorPosition(0, 0);
 
-            string leftPadding;
             string roundString = Properties.Resources.roundNumber;
                         
             GraphicString g = new GraphicString(Properties.Resources.roundNumber);
             for (int i = 0; i < g.height; i++)
             {
                 string thisRowString = g.getRow(i);     //get one row at a time of the string to be displayed
+
+                int roundPosition = thisRowString.IndexOf("Round");
                 
-                if (thisRowString.IndexOf("Round") != -1)
-                    thisRowString = thisRowString.Replace("#", roundId.ToString());
+                if (roundPosition != -1)
+                {                   
+                    int NumberPosition = roundPosition + ("Round ".Length);
+                    //adding the round number on screen without messing up the box line drawing
+                    thisRowString = thisRowString.Remove(NumberPosition,roundId.ToString().Length).Insert(NumberPosition,roundId.ToString());
+                }
+                    
 
                 Console.Write(GameGraphics.paddingToCenterString(thisRowString));
                 GameGraphics.WriteLineWithColor(thisRowString, ConsoleColor.Yellow, ConsoleColor.DarkGreen);
             }
+        } //end method
+        
+        private void promptPlayerPickCard(int i, int cursorTop)
+        {
+            Console.SetCursorPosition(0, cursorTop);
             
-//            roundString = GameGraphics.centeredString(roundString);
-//            GameGraphics.WriteLineWithColor("blah" + roundString, ConsoleColor.Yellow, ConsoleColor.Black);
- //           Console.Write(GameGraphics.repeatString("\r\n", 5));       //20 line feeds
             
-            //each player gets their turn
-            for (int i = 0; i < players.Count; i++)
+            //string leftPadding = GameGraphics.paddingToCenterString((game.players[i].playerName + chooseCard));
+            //Console.Write(leftPadding);
+            //GameGraphics.WriteWithColor(game.players[i].playerName, ConsoleColor.Cyan, ConsoleColor.Black);
+            //GameGraphics.WriteLineWithColor(chooseCard, ConsoleColor.Yellow, ConsoleColor.Black);
+
+            //messages.Add("A", game.players[i].playerName + chooseCard);
+            //messages.Add("F", "[Press Enter to Continue]");
+
+            string chooseCard = " choose a card.";
+            AddOrUpdateDictionaryEntry(messages,"A", game.players[i].playerName + chooseCard);
+            AddOrUpdateDictionaryEntry(messages, "F", "[Press Enter to Continue]");
+            GameGraphics.showBottomHalf(game.players, messages, cursorTop);
+            Console.ReadLine();
+            
+            //GameGraphics.PressEnterToContinue();
+        }
+
+        private void AddOrUpdateDictionaryEntry(Dictionary<string, string> dict, string key, string value)
+        {
+            if (dict.ContainsKey(key))
             {
-                string chooseCard = " choose a card.";
-                leftPadding = GameGraphics.paddingToCenterString((players[i].playerName + chooseCard));
-                Console.Write(leftPadding);
-                GameGraphics.WriteWithColor(players[i].playerName, ConsoleColor.Cyan, ConsoleColor.Black);
-                GameGraphics.WriteLineWithColor(chooseCard, ConsoleColor.Yellow, ConsoleColor.Black);
-                
-                GameGraphics.PressEnterToContinue();
+                dict[key] = value;
+            }
+            else
+            {
+                dict.Add(key, value);
+            }
+        }
 
-                players[i].card = thisGame.thisDeck.nextCard();         //get next card from the deck
-                Console.SetCursorPosition(10, 4);
-                Console.WriteLine("blah blah blah");
-                Console.WriteLine("blah blah blah");
-                Console.WriteLine("blah blah blah");
-                Console.ReadLine();
 
-           }
-            //display Round & Header
-            //display which player's turn it is
-            //display question to hit enter to continue (to reveal the cards)
-
-        } //end class
-    }
+    } //end class
 
     class Player
     {
         public string id { get; set; }
         public string playerName { get; set; }
-        public long playerScore { get; set; }
+        public int playerScore { get; set; }
         public Card card { get; set; }
 
         public Player(int number)
@@ -95,48 +253,53 @@ namespace CardGame
     }
 
     class Game
-    {
-        private int roundCount = 0;     
-        private int numPlayers = 2;     //default number of players, can be between 2 and 4
-        private List<Player> players;   //array of players
-        
-        //private List<Round> rounds;     //array of rounds
-        private bool isGameOver = false;
-
-        public Deck thisDeck { get; set; }
+    {             
+        public Deck deck { get; set; }
+        public List<Player> players;
+        public int roundCount { get; set; }
 
         public void startGame()
         {
             GameGraphics.splashScreen();
+            roundCount = 1;
+            bool isGameOver;
             
             //game loop, so that additional games can be started after the first ends
+            int numPlayers = GameGraphics.getNumPlayers();    //get the number of players for the game
+            players = new List<Player>();
+
+            for (int i = 0; i < numPlayers; i++)
+                players.Add(new Player(i + 1));
+
+            //create deck, shuffle deck
+            deck = new Deck();
+            deck.shuffle(5);        //shuffle deck 5 times
+
             do
             {
-                    numPlayers = GameGraphics.getNumPlayers();    //get the number of players for the game
-                    players = new List<Player>();
-                    
-                    for (int i = 0; i < numPlayers; i++)
-                        players.Add(new Player(i+1));
+                if (deck.cardsLeftInDeck() < players.Count)
+                {
+                    GameGraphics.needToShuffleDeck();
+                    deck = new Deck();
+                    deck.shuffle(5);        //shuffle deck 5 times
+                }
+                
+                Round round = new Round(this);
+                round.playRound();
 
-                    //create deck, shuffle deck
-                    thisDeck = new Deck();
-                    thisDeck.shuffle(5);        //shuffle deck 5 times
-                    Round thisRound = new Round();
-                    //rounds.Add(thisRound);
-                    thisRound.roundId = roundCount + 1;
-                    thisRound.players = players;
-                    thisRound.thisGame = this;  //pass reference of game to the round
-                    
-                    thisRound.playRound();
-                        
+                roundCount++;
 
                 //ask players to get a card, then display the card on screen
                 //check results of the round, if a player wins, then display a win result
                 //display the results on screen
                 //ask to begin the next round               
                 //if the game ended, then ask if the user wants to start another game
+                isGameOver = round.isGameOver();
 
             } while (!isGameOver); //end game loop
+
+            Console.WriteLine("Somebody Won!");
+            Console.ReadLine();
             
         }
     }
@@ -185,6 +348,11 @@ namespace CardGame
                 currentCardIndex++;
             }            
             return thisCard;
+        }
+
+        public int cardsLeftInDeck()
+        {
+            return cardDeck.Count - (currentCardIndex + 1);
         }
  
         public void shuffle(int times)
@@ -272,14 +440,12 @@ namespace CardGame
     {
         private static Dictionary<int, GraphicString> cardVisuals;
         private static List<string> suitChars;
-        private int cardWidth;
-        
-        public CardGraphics()   //constructor
-        {
-            loadCardsFromFile();
-        }
+        private static int cardWidth;
 
-        private void loadCardsFromFile()
+        private static bool cardsLoaded = false;        
+
+
+        private static void loadCardsFromFile()
         {
             cardVisuals = new Dictionary<int, GraphicString>();
             suitChars = new List<string> { "\u2663", "\u2666", "\u2665", "\u2660" };       //club, diamond, heart, spade (lowest value to highest value)
@@ -301,28 +467,29 @@ namespace CardGame
                 }
                 else          //build the cardBuffer string, and when it ends clear the cardBuffer
                 {
-                    cardBuffer += thisRowString;
+                    cardBuffer += thisRowString + Environment.NewLine;      //include the new line for GraphicString to work properly
                     if (isBottomOfCard(thisRowString))
                     {
                         cardVisuals.Add(cardValue, new GraphicString(cardBuffer));
+                        cardBuffer = "";
                     }                        
                 }
             }
         }   //end Method
 
-            private bool isCardHeader(string str)
+            private static bool isCardHeader(string str)
             {
                 return (str.IndexOf("CARD") != -1);
             }
 
-            private int parseCardValue(string str)
+            private static int parseCardValue(string str)
             {
-                int rangeStart = "CARD_".Length;
+                int rangeStart = str.IndexOf("_") + 1;
                 int rangeEnd = str.IndexOf(":");
                 return Convert.ToInt32(str.Substring(rangeStart, rangeEnd - rangeStart));
             }
 
-            private bool isBottomOfCard(string str)
+            private static bool isBottomOfCard(string str)
             {
                 return (str.IndexOf("└") != -1);
             }
@@ -331,44 +498,52 @@ namespace CardGame
         // Visual Display of Cards
         //=========================================================
 
-        public void displayCardList(List<Card> cardList)
+        public static void displayCardList(List<Player> players, int cursorTop)
         {
-            //int screenWidth = Console.LargestWindowWidth;                        
-            int numSpaces = cardList.Count + 1;
+            if (!cardsLoaded)
+                loadCardsFromFile();
+            //------------------------'
+   
+            int numSpaces = players.Count + 1;
             
             //define amount of space between cards on screen
-            int cardPaddingSpace = (int)(GameGraphics.screenWidth - (cardList.Count * cardWidth)) / numSpaces;   
+            int cardPaddingSpace = (int)(GameGraphics.screenWidth - (players.Count * cardWidth)) / numSpaces;   
             
             //get a card to get card height.
-            Card thisCard = cardList[0];
+            Card thisCard = players[0].card;
             GraphicString thisCardGraphics = cardVisuals[thisCard.cardValue];
             int height = thisCardGraphics.height;
+
+            Console.SetCursorPosition(0, cursorTop);
 
             // print between 2 to 4 cards horizontally.  Print the cards, one line at a time.
             for (int i = 0; i < height; i++)    //the line number to be put on screen
             {
-                for (int j = 0; j < cardList.Count; j++)    //the card to be printed in console
+                for (int j = 0; j < players.Count; j++)    //the card to be printed in console
                 {
-                    thisCard = cardList[i];
-                    thisCardGraphics = cardVisuals[thisCard.cardValue];
-                    GameGraphics.WritePadding(cardPaddingSpace);
-                    printCardRow(thisCard, i);
-                }
-            }
+                    if (players[j].card != null)
+                    {
+                        thisCard = players[j].card;
+                        thisCardGraphics = cardVisuals[thisCard.cardValue];
+                        GameGraphics.WritePadding(cardPaddingSpace);
+                        printCardRow(thisCardGraphics.getRow(i), thisCard.suitValue);
+                    }
+                } // end for j
+                
+                Console.WriteLine();
+            } // end for i
+
         }       //end method
 
         //print char by char with colors
-        private static void printCardRow(Card thisCard, int row)
+        private static void printCardRow(string thisRowString, int suit)
         {
-            GraphicString g = cardVisuals[thisCard.cardValue];
-            string thisRowString = g.getRow(row);
-
-            bool isPenaltyCard = (thisCard.suitValue == -1);
+            bool isPenaltyCard = (suit == -1);
             
             if (!isPenaltyCard)   //don't try to replace any characters if it is the penalty card
-                thisRowString = thisRowString.Replace("♦", suitChars[thisCard.suitValue]);
+                thisRowString = thisRowString.Replace("♦", suitChars[suit]);
 
-            bool isHeartsOrDiamonds = (thisCard.suitValue == 1 || thisCard.suitValue == 2);
+            bool isHeartsOrDiamonds = (suit == 1 || suit == 2);
 
             for (int i = 0; i < thisRowString.Length; i++)            //write character by character to maintain the black border on red cards
             {
@@ -556,6 +731,80 @@ namespace CardGame
             Console.ReadLine();
         }
         
+        public static void needToShuffleDeck()
+        {
+            Console.Clear();
+            Console.WriteLine("Not Enough Cards to Continue Playing With Current Deck.");
+            Console.WriteLine("Getting New Deck and Shuffling.");
+            PressEnterToContinue();
+        }
+
+        //Render the bottom half of the screen with data.
+        public static void showBottomHalf(List<Player> players, Dictionary<string, string> messages, int cursorTop)
+        {
+            GraphicString g = new GraphicString(Properties.Resources.BottomHalf);
+            int playerDataPlaced = 0;
+                        
+            for (int i = 0; i < g.height; i++)
+            {
+                Console.SetCursorPosition(0, cursorTop + i);
+                string thisLine = g.getRow(i);
+
+                //Populate Scores
+                int playerStringPosition = thisLine.IndexOf("Player");
+                if (playerStringPosition != -1)    //a row that has scores
+                {
+                    if (playerDataPlaced < players.Count)   // still more scores to add
+                    {
+                        int scorePosition = playerStringPosition + "Player# : ".Length;
+                        string score = players[playerDataPlaced].playerScore.ToString();
+                        int targetLength = "###".Length;
+                        if (score.Length < targetLength)
+                        { score = repeatString(" ", targetLength - score.Length) + score; }
+
+                        thisLine = thisLine.Remove(scorePosition, targetLength).Insert(scorePosition, score);
+                        playerDataPlaced++;
+                    }
+                    else
+                    {
+                        int targetLength = "Player# : ###".Length;
+                        thisLine = thisLine.Remove(playerStringPosition, targetLength).Insert(playerStringPosition, repeatString(" ",targetLength));
+                    }                    
+                }
+
+                //Find line where messages to user are intended to go
+                int messagePosition = thisLine.IndexOf("$");
+                if (messagePosition != -1)
+                {
+                    bool blankMessage = true;
+                    
+                    if (messages != null)
+                    {
+                        string messageLetter = thisLine.Substring(messagePosition + 1, 1);  //get the letter
+                        if (messages.ContainsKey(messageLetter))
+                        {
+                            string newMessage = messages[messageLetter];    //look it up in the incoming dictionary
+                            int targetLength = newMessage.Length;
+
+                            thisLine = thisLine.Remove(messagePosition, targetLength).Insert(messagePosition, newMessage);
+                            blankMessage = false;
+                        }
+                    }
+                                        
+                    if (blankMessage)
+                    {
+                        int targetLength = "$#".Length;
+                        thisLine = thisLine.Remove(messagePosition, targetLength).Insert(messagePosition, repeatString(" ", targetLength));
+                    }
+                }
+
+                //Populate Message Area 
+                                
+                WritePadding(paddingToCenterString(thisLine).Length);              
+                WriteLineWithColor(thisLine, ConsoleColor.White, ConsoleColor.DarkBlue);
+            }
+        }
+        
     } //end GameGraphics class
 
     //Encapsulate the details around ASCII art in an object
@@ -589,7 +838,7 @@ namespace CardGame
 
         private int detectHeight(string str)
         {
-            return (int) str.Length / width;
+            return (int) Math.Ceiling(Convert.ToDecimal(str.Length) / (width + Environment.NewLine.Length));
         }
 
         //create array with single string per row of graphic

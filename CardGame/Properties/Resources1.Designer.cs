@@ -61,7 +61,23 @@ namespace CardGame.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CARD_2:
+        ///   Looks up a localized string similar to ╔═══════════════════════════════════════════════════════════════╗
+        ///║┌─── SCORES ───┐                                               ║
+        ///║│Player1 : ### │                                               ║
+        ///║│Player2 : ### │                                               ║
+        ///║│Player3 : ### │                                               ║
+        ///║│Player4 : ### │                                               ║
+        ///║└──────────────┘                                               ║
+        ///╚══════════════════════════════════════════ [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string BottomHalf {
+            get {
+                return ResourceManager.GetString("BottomHalf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to   CARD_2:
         ///┌───────┐
         ///│2      │
         ///│♦      │
@@ -74,7 +90,7 @@ namespace CardGame.Properties {
         ///│      ♦│
         ///│      2│
         ///└───────┘
-        ///CARD_3:
+        ///  CARD_3:
         ///┌───────┐
         ///│3      │
         ///│♦      │
@@ -87,7 +103,7 @@ namespace CardGame.Properties {
         ///│      ♦│
         ///│      3│
         ///└───────┘
-        ///CARD_4:
+        ///  CARD_4:
         ///┌───────┐
         ///│4      │
         ///│♦      │
@@ -100,15 +116,14 @@ namespace CardGame.Properties {
         ///│      ♦│
         ///│      4│
         ///└───────┘
-        ///CARD_5:
+        ///  CARD_5:
         ///┌───────┐
         ///│5      │
         ///│♦      │
         ///│       │
         ///│  ♦ ♦  │
         ///│   ♦   │
-        ///│  ♦ ♦  │
-        ///│   [rest of string was truncated]&quot;;.
+        ///│  ♦ ♦ [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string cardFaces {
             get {
@@ -131,14 +146,9 @@ namespace CardGame.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ┌───────────────────────────────────────────────────────────────────┐
-        ///│              *** Welcome to Basic Card Game ***                   │
-        ///│                                                                   │
-        ///│                                                                   │
-        ///│   The Rules:                                                      │
-        ///│                                                                   │
-        ///│   The player with the highest card in the round wins 2 points.    │
-        ///│               [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to ┌─────────────────────┐
+        ///│       Round #       │
+        ///└─────────────────────┘.
         /// </summary>
         internal static string roundNumber {
             get {
