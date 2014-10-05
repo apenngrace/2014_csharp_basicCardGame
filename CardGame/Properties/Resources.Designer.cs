@@ -163,8 +163,7 @@ namespace CardGame.Properties {
         /// <summary>
         ///   Looks up a localized string similar to ╔══════════════════════════════╗
         ///║                              ║
-        ///║  All Cards in Deck Played    ║
-        ///║      Reshuffling Deck...     ║
+        ///║       Reshuffling Deck...    ║
         ///║                              ║
         ///║  [Press Enter to Continue]   ║
         ///╚══════════════════════════════╝.

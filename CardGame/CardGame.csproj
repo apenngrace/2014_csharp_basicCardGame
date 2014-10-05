@@ -41,9 +41,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameClasses\Card.cs" />
+    <Compile Include="GameClasses\CardGraphics.cs" />
+    <Compile Include="GameClasses\Game.cs" />
+    <Compile Include="GameClasses\Player.cs" />
+    <Compile Include="GameClasses\Deck.cs" />
+    <Compile Include="GameClasses\Round.cs" />
+    <Compile Include="GameClasses\ToolBox.cs" />
+    <Compile Include="GameClasses\GameConstants.cs" />
+    <Compile Include="GameClasses\GraphicString.cs" />
+    <Compile Include="GameClasses\GameGraphics.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources1.Designer.cs">
+    <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
@@ -56,11 +66,11 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
-      <LastGenOutput>Resources1.Designer.cs</LastGenOutput>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="cardFaces.txt" />
+    <None Include="Resources\cardFaces.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\splashScreen.txt" />
