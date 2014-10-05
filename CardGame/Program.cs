@@ -36,7 +36,7 @@ namespace CardGame
         public void playRound()
         {
             displayHeader();
-            int cursorTopBelowHeader = Console.CursorTop + 1;
+            int cursorTopBelowHeader = Console.CursorTop;
             int cardHeight = 12;
             int cursorBelowCards = cursorTopBelowHeader + cardHeight;
 
@@ -49,22 +49,23 @@ namespace CardGame
                 promptPlayerPickCard(i, cursorBelowCards);
                 game.players[i].card = game.deck.nextCard();         //get next card from the deck
                 CardGraphics.displayCardList(game.players, cursorTopBelowHeader);               
-           }
+            }
 
-           Console.ReadLine();
+           //Console.ReadLine();
 
-            ////Clear the cards
-            //Console.SetCursorPosition(0, cursorTopBelowHeader);
-            //for (int i = 0; i < cardHeight; i++)
-            //{
-            //    Console.SetCursorPosition(0, i + cursorTopBelowHeader);
-            //    GameGraphics.WritePadding(80);
-            //}
             int winnerIndex = WhoWonRound();
-            game.players[winnerIndex].playerScore += WINNER_POINTS;
+            
+            if (game.players[winnerIndex].card.cardValue != -1)
+            { game.players[winnerIndex].playerScore += WINNER_POINTS; }
+                        
             checkPenalty();
 
             showWinnerAndScores(winnerIndex, cursorBelowCards);
+
+            if (isGameOver())
+            {
+                GameGraphics.winner(game.players[winnerIndex].playerName, game.players[winnerIndex].playerScore.ToString());
+            }
             
             clearPlayerCards();
         } //method
@@ -72,35 +73,44 @@ namespace CardGame
 
         private void showWinnerAndScores(int winnerIndex, int cursorBelowCards)
         {
-            Console.SetCursorPosition(0, cursorBelowCards);
-            GameGraphics.WritePadding(80); Console.WriteLine();
-            GameGraphics.WritePadding(80); Console.WriteLine();
-            GameGraphics.WritePadding(80); Console.WriteLine();
-            GameGraphics.WritePadding(80); Console.WriteLine();
-            Console.SetCursorPosition(0, cursorBelowCards);
+            clearMessages();
+
+            char letter;
+            //if multiple penalties are given, then no winner for round.
+            if (game.players[winnerIndex].card.cardValue != -1)
+            {
+                string roundWinnerString = game.players[winnerIndex].playerName + " won this round. (+2 Points)";
+                letter = 'B';
+                AddOrUpdateDictionaryEntry(messages, letter.ToString(), roundWinnerString);
+            }
+
+            letter = 'C';            
+            bool penaltyFound = false;
+            foreach (var p in game.players)
+            {              
+                if (p.card.cardValue == -1)
+                {
+                    penaltyFound = true;
+                    string penaltyMessage = p.playerName + " got a penalty card. (-1 Point)";
+                    AddOrUpdateDictionaryEntry(messages, letter.ToString(), penaltyMessage);
+                    letter++;   //advance to letter D (only 2 possible penalty cards in deck).
+                }
+            }
+
+            if (!isGameOver())
+            {
+                letter = 'F';
+                AddOrUpdateDictionaryEntry(messages, letter.ToString(), "[Press Enter to Continue]");
+            }
+
+            //letter = 'F';
+            //AddOrUpdateDictionaryEntry(messages, letter.ToString(), "[Press Enter to Continue]");
+
+            GameGraphics.showBottomHalf(game.players, messages, cursorBelowCards);
+
+            if (!isGameOver())          //do not pause if the game is over, to allow winning screen to pop up.
+            { Console.ReadLine(); }
             
-            string roundWinnerString = GameGraphics.centeredString(game.players[winnerIndex].playerName + " won this round.");
-            GameGraphics.WriteLineWithColor(roundWinnerString, ConsoleColor.White, ConsoleColor.Black);
-
-            Console.WriteLine("Scores:");
-            for (int i = 0; i < game.players.Count; i++ )
-            {
-                Player player = game.players[i];
-                
-                if (i == winnerIndex)
-                    Console.WriteLine(player.playerName + ": " + player.playerScore + " \t(Round Winner)");                
-                else if (game.players[i].card.cardValue == -1)
-                    Console.WriteLine(player.playerName + ": " + player.playerScore + " \t(Penalty Card)");
-                else
-                    Console.WriteLine(player.playerName + ": " + player.playerScore);
-            }
-
-            if (isGameOver())
-            {
-                Console.WriteLine(game.players[winnerIndex].playerName + " won the game.");
-            }
-
-            GameGraphics.PressEnterToContinue();
         }   //end method
 
         public bool isGameOver()
@@ -133,8 +143,8 @@ namespace CardGame
                     if (player.playerScore - 1 < 0)
                         player.playerScore = 0;
                     else
-                       player.playerScore--;
-                }                    
+                        player.playerScore--;
+                }
             }
         }
 
@@ -234,7 +244,10 @@ namespace CardGame
                 dict.Add(key, value);
             }
         }
-
+        private void clearMessages()
+        {
+            messages = new Dictionary<string, string>();
+        }
 
     } //end class
 
@@ -298,8 +311,8 @@ namespace CardGame
 
             } while (!isGameOver); //end game loop
 
-            Console.WriteLine("Somebody Won!");
-            Console.ReadLine();
+            //Console.WriteLine("Somebody Won!");
+            //Console.ReadLine();
             
         }
     }
@@ -394,7 +407,6 @@ namespace CardGame
                     {
                         if (tempDeck[someNumber] == null)
                         {
-                            //tempDeck.Insert(someNumber, cardDeck[i]);
                             tempDeck[someNumber] = cardDeck[i];
                             done = true;
                         }
@@ -733,10 +745,17 @@ namespace CardGame
         
         public static void needToShuffleDeck()
         {
-            Console.Clear();
-            Console.WriteLine("Not Enough Cards to Continue Playing With Current Deck.");
-            Console.WriteLine("Getting New Deck and Shuffling.");
-            PressEnterToContinue();
+            GraphicString g = new GraphicString(Properties.Resources.Reshuffling);
+            int horizontal = (int)(80/2) - (int)(g.width / 2);
+            int vertical = (int)(25/2) - (int)(g.height / 2);
+            
+            for (int i = 0; i < g.height; i++)
+            {
+                Console.SetCursorPosition(horizontal, vertical + i);
+                WriteWithColor(g.getRow(i), ConsoleColor.Black, ConsoleColor.Yellow);
+            }
+            Console.CursorVisible = false;
+            Console.ReadLine();            
         }
 
         //Render the bottom half of the screen with data.
@@ -804,6 +823,43 @@ namespace CardGame
                 WriteLineWithColor(thisLine, ConsoleColor.White, ConsoleColor.DarkBlue);
             }
         }
+
+        public static void winner(string name, string score)
+        {
+            GraphicString g = new GraphicString(Properties.Resources.winner);
+            int horizontal = (int)(80 / 2) - (int)(g.width / 2);
+            int vertical = (int)(25 / 2) - (int)(g.height / 2);
+
+            int targetLength;
+            for (int i = 0; i < g.height; i++)
+            {
+                string thisLine = g.getRow(i);
+                
+                int namePosition = thisLine.IndexOf("Player");
+                if (namePosition != -1)
+                {
+                    targetLength = name.Length;
+                    thisLine = thisLine.Remove(namePosition, targetLength).Insert(namePosition, name);
+                }
+
+                int scorePosition = thisLine.IndexOf("Score");
+                if (scorePosition != -1)
+                {
+                    targetLength = "###".Length;
+                    if (score.Length < targetLength)
+                    { score = repeatString(" ", targetLength - score.Length) + score; }
+
+                    scorePosition += "Score ".Length + 1;                   
+                    thisLine = thisLine.Remove(scorePosition, targetLength).Insert(scorePosition, score);
+                }
+                
+                Console.SetCursorPosition(horizontal, vertical + i);
+                WriteWithColor(thisLine, ConsoleColor.White, ConsoleColor.DarkGreen);
+            }
+            Console.CursorVisible = false;
+            Console.ReadLine();            
+        }
+
         
     } //end GameGraphics class
 

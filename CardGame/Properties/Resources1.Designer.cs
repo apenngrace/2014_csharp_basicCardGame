@@ -61,14 +61,13 @@ namespace CardGame.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ╔═══════════════════════════════════════════════════════════════╗
-        ///║┌─── SCORES ───┐                                               ║
-        ///║│Player1 : ### │                                               ║
-        ///║│Player2 : ### │                                               ║
-        ///║│Player3 : ### │                                               ║
-        ///║│Player4 : ### │                                               ║
-        ///║└──────────────┘                                               ║
-        ///╚══════════════════════════════════════════ [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to ╔═══════════════════════════════════════════════════════════════════════╗
+        ///║┌─── SCORES ───┐      $A                                               ║
+        ///║│Player1 : ### │      $B                                               ║
+        ///║│Player2 : ### │      $C                                               ║
+        ///║│Player3 : ### │      $D                                               ║
+        ///║│Player4 : ### │      $E                                               ║
+        ///║└──────────────┘      $F                                      [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string BottomHalf {
             get {
@@ -146,6 +145,21 @@ namespace CardGame.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ╔══════════════════════════════╗
+        ///║                              ║
+        ///║  All Cards in Deck Played    ║
+        ///║      Reshuffling Deck...     ║
+        ///║                              ║
+        ///║  [Press Enter to Continue]   ║
+        ///╚══════════════════════════════╝.
+        /// </summary>
+        internal static string Reshuffling {
+            get {
+                return ResourceManager.GetString("Reshuffling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ┌─────────────────────┐
         ///│       Round #       │
         ///└─────────────────────┘.
@@ -169,6 +183,24 @@ namespace CardGame.Properties {
         internal static string splashScreen {
             get {
                 return ResourceManager.GetString("splashScreen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ╔═══════════════════════════════╗
+        ///║                               ║
+        ///║    ************************   ║
+        ///║     Player1 Won The Game!     ║
+        ///║    ************************   ║
+        ///║       Winning Score: ###      ║
+        ///║                               ║
+        ///║   [Press Enter to Continue]   ║
+        ///║                               ║
+        ///╚═══════════════════════════════╝.
+        /// </summary>
+        internal static string winner {
+            get {
+                return ResourceManager.GetString("winner", resourceCulture);
             }
         }
     }

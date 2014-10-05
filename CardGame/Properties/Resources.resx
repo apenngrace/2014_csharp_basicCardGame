@@ -127,10 +127,16 @@
   <data name="howManyPlayers" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\howManyPlayers.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="Reshuffling" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Reshuffling.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
   <data name="roundNumber" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\roundNumber.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="splashScreen" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\splashScreen.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;iso-8859-1</value>
+  </data>
+  <data name="winner" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\winner.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>
